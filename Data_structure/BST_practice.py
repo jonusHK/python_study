@@ -1,15 +1,15 @@
 class TreeNode:
-    def __init__(self, key = None):
+    def __init__(self, key):
         self.__key = key
         self.__left = None
         self.__right = None
 
-    def __del__(self):
-        print(f'key {self.__key} is deleted')
-
+    # getter
     @property
     def key(self):
         return self.__key
+
+    # setter
     @key.setter
     def key(self, key):
         self.__key = key
@@ -17,6 +17,7 @@ class TreeNode:
     @property
     def left(self):
         return self.__left
+
     @left.setter
     def left(self, left):
         self.__left = left
@@ -24,124 +25,113 @@ class TreeNode:
     @property
     def right(self):
         return self.__right
+
     @right.setter
     def right(self, right):
         self.__right = right
 
 class BST:
     def __init__(self):
-        self.root = None
+        self.__root = None
 
-    def get_root(self):
-        return self.root
+    @property
+    def root(self):
+        return self.__root
 
-    
-    @staticmethod
-    def func(x):
-        print(x.key, end = '  ')
-
-    def preorder_traverse(self, cur):
+    def preorder(self, cur):
         if not cur:
             return
+        print(cur.key, end="  ")
+        self.preorder(cur.left)
+        self.preorder(cur.right)
 
-        self.func(cur)
-        self.preorder_traverse(cur.left)
-        self.preorder_traverse(cur.right)
+
 
     def insert(self, key):
         new_node = TreeNode(key)
-        cur = self.root
+
+        cur = self.__root
 
         if not cur:
-            self.root = new_node
+            self.__root = new_node
             return
-        while cur:
-            parent = cur    
+
+        while True:
+            parent = cur
             if key < cur.key:
                 cur = cur.left
+                if not cur:
+                    parent.left = new_node
+                    return
             else:
                 cur = cur.right
-        
-        if parent.key < key:
-            parent.right = new_node
-            return
-        else:
-            parent.left = new_node
-            return
-    
+                if not cur:
+                    parent.right = new_node
+                    return
+
+
     def search(self, target):
-        cur = self.root
+        cur = self.__root
         while cur:
-            if target < cur.key:
+            if cur.key == target:
+                return cur.key
+            elif target < cur.key:
                 cur = cur.left
             elif target > cur.key:
                 cur = cur.right
-            else:
-                print(f'searched data: {target}')
-                return
-        print(f'There is no {target} in BST')
+        return None
 
-    def __remove_recursion(self, cur, target):
+    def delete(self, target):
+        self.__root = self.__delete_recursion(self.__root, target)
+
+    # 재귀함수
+    # delete : 자료구조에서 특정 데이터 삭제 후, 반환안할 때 사용
+    # remove : 자료구조에서 특정 데이터 삭제 후, 반환할 때 사
+    def __delete_recursion(self, cur, target):
+        # base case
         if not cur:
-            return None, None
+            return None
         elif target < cur.key:
-            cur.left, rem_node=self.__remove_recursion(cur.left, target)
+            cur.left = self.__delete_recursion(cur.left, target)
         elif target > cur.key:
-            cur.right, rem_node = self.__remove_recursion(cur.right, target)
-        else: 
-            # 타겟노드가 리프노드일 때
+            cur.right = self.__delete_recursion(cur.right, target)
+        else:
+            # 삭제 노드가 리프 노드인 경우
             if not cur.left and not cur.right:
-                rem_node = cur
                 cur = None
-            # 타겟노드의 오른쪽 자식만 없을 때
+            # 삭제 노드의 왼쪽 자식이 있는 경우
             elif not cur.right:
-                rem_node = cur
                 cur = cur.left
-            # 타겟노드의 왼쪽 자식만 없을 때
+            # 삭제 노드의 오른쪽 자식이 있는 경우
             elif not cur.left:
-                rem_node = cur
                 cur = cur.right
-            # 타겟노드의 자식이 둘다 있을 때
+            # 삭제 노드의 자식이 둘일 때
             else:
-                replace = cur.left
-                while replace.right:
-                    replace = replace.right
-                cur.key, replace.key = replace.key, cur.key
-                cur.left, rem_node = self.__remove_recursion(cur.left, replace.key)
-        return cur, rem_node
+                # 대체 노드를 찾는다.
+                rep = cur.left
+                while rep.right:
+                    rep = rep.right
+                # 삭제 노드와 대체 노드의 키를 교환
+                cur.key, rep.key = rep.key, cur.key
 
-    def remove(self, target):
-        self.root, removed_node = self.__remove_recursion(self.root, target)
-        if removed_node:
-            removed_node.left = removed_node.right = None
-        return removed_node
-                
-
+                cur.left = self.__delete_recursion(cur.left, rep.key)
+        return cur
 if __name__=="__main__":
-    print('*' * 100)
     bst = BST()
 
     bst.insert(6)
     bst.insert(3)
+    bst.insert(8)
     bst.insert(2)
     bst.insert(4)
     bst.insert(5)
-    bst.insert(8)
     bst.insert(10)
     bst.insert(9)
     bst.insert(11)
 
-    # f = lambda x: print(x.key, end = '  ')
+    bst.preorder(bst.root)
 
-    bst.preorder_traverse(bst.get_root())
+    # 삭제노드가 리프노드일 때
+    bst.delete(6)
     print()
-
-    bst.search(3)
-
-    bst.remove(9)
-    bst.remove(8)
-    bst.remove(6)
-
-    bst.preorder_traverse(bst.get_root())
-    print()
-    print('*' * 100)
+    bst.preorder(bst.root)
